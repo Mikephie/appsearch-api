@@ -1,40 +1,37 @@
-// api.js - Vercel Serverless Function
-export default async function handler(request, response) {
-  const { query } = request;
-  const appId = query.id;
+export default async function handler(req, res) {
+  const { id } = req.query;
 
-  if (!appId) {
-    return response.status(400).json({ error: "Missing app ID" });
+  if (!id) {
+    res.status(400).json({ error: "Missing app ID" });
+    return;
   }
 
-  const apiUrl = `https://itunes.apple.com/lookup?id=${appId}`;
+  const url = `https://itunes.apple.com/lookup?id=${id}&country=us`;
 
   try {
-    const res = await fetch(apiUrl, {
-      method: "GET",
+    const response = await fetch(url, {
       headers: {
-        "User-Agent": "iTunes/12.10.1 (Macintosh; OS X 10.15.1) AppleWebKit/605.1.15",
+        "User-Agent": "iTunes Search/1.0",
         "Accept": "application/json",
-        "Accept-Encoding": "gzip, deflate",
-        "Accept-Language": "en-US,en;q=0.9",
-        "Connection": "keep-alive"
-      }
+      },
     });
 
-    if (!res.ok) {
-      throw new Error(`Upstream API error: ${res.status}`);
+    const data = await response.json();
+
+    if (data.resultCount === 0) {
+      res.status(404).json({ error: "App not found" });
+      return;
     }
 
-    const data = await res.json();
+    const app = data.results[0];
 
-    return response.status(200).json({
-      appId: data.results?.[0]?.trackId || null,
-      bundleId: data.results?.[0]?.bundleId || null,
-      appName: data.results?.[0]?.trackName || null,
-      productIds: data.results?.[0]?.inAppPurchases || []
+    res.status(200).json({
+      appId: app.trackId,
+      bundleId: app.bundleId,
+      appName: app.trackName,
+      productIds: [],
     });
-
-  } catch (error) {
-    return response.status(502).json({ error: "Fetch failed", message: error.message });
+  } catch (err) {
+    res.status(502).json({ error: "Fetch failed", message: err.message });
   }
 }
