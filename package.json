@@ -1,1 +1,15 @@
-123
+{
+  "name": "myappsearch-auto-extractor",
+  "version": "1.0.0",
+  "description": "自动化提取 MyAppSearch 查询结果的 Product IDs",
+  "main": "runBatchExtract.js",
+  "scripts": {
+    "start": "node runBatchExtract.js"
+  },
+  "dependencies": {
+    "@wdio/cli": "^8.30.0",
+    "webdriverio": "^8.30.0"
+  },
+  "author": "你的名字",
+  "license": "MIT"
+}
